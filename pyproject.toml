@@ -1,0 +1,83 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "flybrain"
+version = "0.1.0"
+description = "FlyBrain Optimizer: connectome-prior controller for large multi-agent systems"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT OR Apache-2.0" }
+authors = [{ name = "FlyBrain Optimizer contributors" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Rust",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pydantic>=2.6,<3",
+    "hydra-core>=1.3,<2",
+    "omegaconf>=2.3,<3",
+    "yandex-cloud-ml-sdk>=0.4,<1",
+    "tenacity>=8.2,<9",
+    "tqdm>=4.66",
+    "rich>=13.7",
+    "numpy>=1.26,<3",
+]
+
+[project.optional-dependencies]
+ml = [
+    "torch>=2.2,<3",
+    "torch-geometric>=2.5,<3",
+    "sentence-transformers>=2.7,<4",
+    "scikit-learn>=1.4",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "maturin>=1.7,<2",
+]
+
+[project.scripts]
+flybrain-py = "flybrain.cli:main"
+
+[tool.maturin]
+module-name = "flybrain.flybrain_native"
+manifest-path = "crates/flybrain-py/Cargo.toml"
+python-source = "."
+features = ["pyo3/extension-module"]
+strip = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "RUF"]
+# RUF002/RUF003: en-dash / Cyrillic ambiguity in our Russian docs is intentional.
+# UP042: don't auto-rewrite str-Enum to StrEnum (pickle/JSON value compatibility).
+ignore = ["E501", "RUF002", "RUF003", "UP042"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+# `flybrain_native` is a compiled PyO3 extension; mypy can't see it from
+# the source tree, only after `maturin develop` installs the .so file.
+[[tool.mypy.overrides]]
+module = ["flybrain.flybrain_native", "flybrain_native"]
+ignore_missing_imports = true
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+addopts = "-q"
+asyncio_mode = "auto"
