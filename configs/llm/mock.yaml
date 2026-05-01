@@ -1,0 +1,6 @@
+# Mock LLM client config for CI and local dev.
+provider: mock
+default_response: "[mock] no rule matched"
+fixed_latency_ms: 1
+deterministic_tokens: true
+rules: []

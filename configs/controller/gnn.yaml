@@ -1,0 +1,8 @@
+variant: gnn
+hidden_dim: 256
+num_layers: 3
+dropout: 0.1
+backbone: gat   # gcn | gat | sage
+fly_prior:
+  use: true
+  K: 64

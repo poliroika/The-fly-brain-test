@@ -1,0 +1,14 @@
+[package]
+name = "flybrain-runtime"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "MAS runtime: agent graph, message bus, scheduler, trace writer"
+
+[dependencies]
+flybrain-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
