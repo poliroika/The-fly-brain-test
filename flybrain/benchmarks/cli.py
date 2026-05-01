@@ -37,6 +37,7 @@ from flybrain.eval import (
     metrics_from_trace_path,
     write_report,
 )
+from flybrain.eval.reports import select_cherry_picks
 from flybrain.llm import (
     BudgetTracker,
     MockLLMClient,
@@ -242,12 +243,14 @@ async def run(args: argparse.Namespace) -> int:
         (out_dir / f"comparison_{benchmark}.md").write_text(markdown_table(rows))
         (out_dir / f"comparison_{benchmark}.csv").write_text(csv_table(rows))
 
+    cherry = select_cherry_picks(out_dir, max_picks=3)
     write_report(
         ReportInputs(
             suite_name=args.suite,
             overall=overall,
             per_benchmark=per_benchmark,
-            trace_paths=[],
+            trace_paths=[c.path for c in cherry],
+            cherry_picks=cherry,
         ),
         out_dir / "report.md",
     )

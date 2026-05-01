@@ -16,6 +16,7 @@ from flybrain.eval import (
     render_report,
     write_report,
 )
+from flybrain.eval.reports import select_cherry_picks
 
 
 def _trace(*, passed: bool, score: float = 0.85) -> dict:
@@ -181,9 +182,13 @@ def test_render_report_inlines_tables_and_traces() -> None:
             trace_paths=[Path("data/traces/x.trace.json")],
         )
     )
-    assert "Suite: full_min" in text
+    assert "Suite: `full_min`" in text
     assert "manual_graph" in text
     assert "data/traces/x.trace.json" in text
+    # Phase-11 template surface area.
+    assert "## 7. Deliverables checklist" in text
+    assert "## 8. Experiments coverage" in text
+    assert "## 9. Discussion" in text
 
 
 def test_write_report_creates_parents(tmp_path: Path) -> None:
@@ -198,4 +203,50 @@ def test_write_report_creates_parents(tmp_path: Path) -> None:
         out,
     )
     assert out.exists()
-    assert "Suite: x" in out.read_text()
+    assert "Suite: `x`" in out.read_text()
+
+
+# -- cherry-pick selection -----------------------------------------------------
+
+
+def _write_trace(p: Path, *, passed: bool, score: float, fc: str | None,
+                 densities: list[float] | None = None) -> None:
+    densities = densities or [0.2, 0.3]
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({
+        "task_id": p.stem,
+        "task_type": "coding",
+        "steps": [{"graph_action": {"kind": "activate_agent", "agent": "A"},
+                   "graph_density": d} for d in densities],
+        "totals": {"tokens_in": 1, "tokens_out": 1, "llm_calls": 1,
+                   "tool_calls": 0, "failed_tool_calls": 0,
+                   "latency_ms": 1, "cost_rub": 0.01},
+        "verification": {"passed": passed, "score": score,
+                         "failed_component": fc},
+    }))
+
+
+def test_select_cherry_picks_returns_solved_failed_and_routing(tmp_path: Path) -> None:
+    # Solved trace, high score.
+    _write_trace(tmp_path / "manual_graph" / "humaneval" / "good.trace.json",
+                 passed=True, score=0.95, fc=None)
+    # Failed trace with explicit failed_component.
+    _write_trace(tmp_path / "random_sparse" / "humaneval" / "bad.trace.json",
+                 passed=False, score=0.30, fc="tests_run")
+    # Routing-interesting trace (wide density spread).
+    _write_trace(tmp_path / "fully_connected" / "humaneval" / "wild.trace.json",
+                 passed=True, score=0.80, fc=None,
+                 densities=[0.05, 0.95, 0.4, 0.6])
+
+    picks = select_cherry_picks(tmp_path, max_picks=3)
+    paths = {p.path.name: p.reason for p in picks}
+    assert "good.trace.json" in paths
+    assert "bad.trace.json" in paths
+    assert "wild.trace.json" in paths
+    assert "highest-scoring" in paths["good.trace.json"]
+    assert "tests_run" in paths["bad.trace.json"]
+    assert "density" in paths["wild.trace.json"].lower()
+
+
+def test_select_cherry_picks_handles_empty_dir(tmp_path: Path) -> None:
+    assert select_cherry_picks(tmp_path) == []

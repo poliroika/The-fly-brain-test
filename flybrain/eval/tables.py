@@ -32,7 +32,12 @@ _COLUMNS: tuple[tuple[str, str], ...] = (
 )
 
 
-def _fmt_value(value: float | int | str) -> str:
+def _fmt_value(value: float | int | str | None) -> str:
+    # Strict-JSON serialisation maps non-finite floats (e.g. an infinite
+    # `cost_per_solved_rub`) to `null`, which loads back as `None`; render
+    # those as ∞ rather than crashing.
+    if value is None:
+        return "∞"
     if isinstance(value, str):
         return value
     if isinstance(value, int):
