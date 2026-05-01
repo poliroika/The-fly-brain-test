@@ -110,12 +110,8 @@ impl From<MethodKind> for CompressionMethod {
 
 fn run_build(args: BuildArgs) -> Result<()> {
     if args.all {
-        let reports = build_default_with(
-            &args.out_dir,
-            args.num_nodes,
-            args.seed,
-            args.method.into(),
-        )?;
+        let reports =
+            build_default_with(&args.out_dir, args.num_nodes, args.seed, args.method.into())?;
         for r in &reports {
             println!(
                 "[K={:>3}] {} src={} edges={} compressed_edges={} Q={:.4} -> {}",
