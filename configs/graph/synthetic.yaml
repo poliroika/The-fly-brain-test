@@ -1,0 +1,4 @@
+source: synthetic
+num_nodes: 64
+seed: 42
+output: data/flybrain/fly_graph_synthetic_64.fbg
