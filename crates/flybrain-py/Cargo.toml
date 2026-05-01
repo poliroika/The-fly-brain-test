@@ -1,0 +1,21 @@
+[package]
+name = "flybrain-py"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "PyO3 bindings exposing FlyBrain Rust core to Python as flybrain_native"
+
+[lib]
+name = "flybrain_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+flybrain-core = { workspace = true }
+flybrain-graph = { workspace = true }
+flybrain-runtime = { workspace = true }
+flybrain-verify = { workspace = true }
+pyo3 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

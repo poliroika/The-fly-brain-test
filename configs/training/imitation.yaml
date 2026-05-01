@@ -1,0 +1,6 @@
+stage: imitation
+batch_size: 32
+lr: 3.0e-4
+epochs: 5
+weight_decay: 1.0e-5
+traces_dir: data/traces/expert
