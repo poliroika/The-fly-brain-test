@@ -29,6 +29,11 @@ from flybrain.runtime.agent import Agent, AgentSpec, AgentStepResult
 from flybrain.runtime.memory import EpisodicMemory
 from flybrain.runtime.retriever import BM25Retriever
 from flybrain.runtime.state import RuntimeState
+from flybrain.verification import (
+    VerificationConfig,
+    VerificationContext,
+    VerificationPipeline,
+)
 
 
 @dataclass(slots=True)
@@ -43,13 +48,17 @@ class Task:
 
 
 @dataclass(slots=True)
-class _Verifier:
-    """Tiny rule-based stand-in for the full verifier pipeline.
+class _RuleVerifier:
+    """Cheap component-presence checker used as the *cheap* part of the
+    Phase-3 verification pipeline.
 
-    Phase 2 only needs *something* the controller can call so the
-    integration test can exercise the `CallVerifier` branch. The real
-    verifier with schema / tool_use / factual / reasoning checks is
-    Phase 3 (`flybrain.verification.pipeline`).
+    The Rust + LLM verifiers in `flybrain.verification.pipeline` cover
+    schema / tool_use / unit_test / factual / reasoning. They only fire
+    when the runner has something to check (a candidate answer, tool
+    calls, a unit-test payload). This rule-based check stays in the
+    loop because it is what tells a Phase-2 manual controller "you've
+    skipped the Coder, the run is incomplete" — i.e. it ensures the
+    plan itself was followed, not just the artefacts.
     """
 
     def check(self, state: RuntimeState) -> dict[str, Any]:
@@ -108,6 +117,12 @@ class MAS:
 
     config: MASConfig = field(default_factory=MASConfig)
 
+    verification: VerificationPipeline | None = None
+    """Optional Phase-3 verification pipeline. When present, every
+    `call_verifier` action runs the full Rust + LLM pipeline in
+    addition to the cheap rule-based component check; when ``None``
+    the runner falls back to the rule-based verdict only."""
+
     @classmethod
     def from_specs(
         cls,
@@ -154,8 +169,14 @@ class MAS:
             last_active_agent=None,
         )
 
-        verifier = _Verifier()
+        verifier = _RuleVerifier()
+        pipeline = self.verification or VerificationPipeline(
+            config=VerificationConfig.for_task_type(task.task_type)
+        )
+        observed_tool_calls: list[dict[str, Any]] = []
+        last_unit_test_payload: dict[str, Any] | None = None
         last_step_for_trace: dict[str, Any] = {}
+        last_nonempty_output: str | None = None
 
         for _ in range(self.config.max_steps):
             action = controller.select_action(state)
@@ -221,6 +242,10 @@ class MAS:
                         step_id=sched.step_id,
                     )
                     retriever.add(result.output_text)
+                    for tr in result.tool_calls:
+                        observed_tool_calls.append(tr.as_tool_call())
+                        if tr.name == "unit_tester" and tr.ok:
+                            last_unit_test_payload = dict(tr.output)
 
                     # Forward output to all neighbours of agent_name in the
                     # current AgentGraph. Empty by default (Phase 2 manual
@@ -236,7 +261,20 @@ class MAS:
                         )
 
             elif kind == "call_verifier":
-                verifier_payload = verifier.check(state)
+                rule_payload = verifier.check(state)
+                pipeline_ctx = VerificationContext(
+                    task_id=task.task_id,
+                    task_type=task.task_type,
+                    prompt=task.prompt,
+                    candidate_answer=last_nonempty_output,
+                    reference=str(task.ground_truth) if task.ground_truth is not None else None,
+                    tool_calls=list(observed_tool_calls),
+                    unit_test_payload=last_unit_test_payload,
+                )
+                pipeline_result = await pipeline.run_async(pipeline_ctx)
+                verifier_payload = self._merge_verifier_results(
+                    rule_payload, pipeline_result.to_dict()
+                )
                 step_extras["verifier_score"] = verifier_payload["score"]
                 step_extras["errors"].extend(verifier_payload["errors"])
 
@@ -268,6 +306,8 @@ class MAS:
                 "output_summary": step_extras["output_summary"],
                 "errors": step_extras["errors"],
             }
+            if step_extras["output_summary"]:
+                last_nonempty_output = step_extras["output_summary"]
 
             sched.advance_step()
             state = self._refresh_state(
@@ -282,9 +322,20 @@ class MAS:
             if kind == "terminated":
                 break
 
-        verification = verifier.check(state)
+        rule_final = verifier.check(state)
+        final_ctx = VerificationContext(
+            task_id=task.task_id,
+            task_type=task.task_type,
+            prompt=task.prompt,
+            candidate_answer=last_nonempty_output,
+            reference=str(task.ground_truth) if task.ground_truth is not None else None,
+            tool_calls=list(observed_tool_calls),
+            unit_test_payload=last_unit_test_payload,
+        )
+        pipeline_final = await pipeline.run_async(final_ctx)
+        verification = self._merge_verifier_results(rule_final, pipeline_final.to_dict())
         finalised = trace.finalize(
-            final_answer=last_step_for_trace.get("output_summary"),
+            final_answer=last_nonempty_output,
             verification=verification,
             metadata={
                 "controller": getattr(controller, "name", controller.__class__.__name__),
@@ -328,6 +379,52 @@ class MAS:
             "current_graph_hash": graph_hash,
             "graph_action": action,
             "cost_rub": cost_rub,
+        }
+
+    @staticmethod
+    def _merge_verifier_results(rule: dict[str, Any], pipeline: dict[str, Any]) -> dict[str, Any]:
+        """Combine the rule-based component check with the pipeline result.
+
+        * `passed` = AND.
+        * `score`  = mean.
+        * `errors` / `warnings` are concatenated (pipeline already prefixes
+          its messages with `[component]`; rule-based ones are tagged
+          `[rule]` here).
+        * `failed_component` / `suggested_next_agent` come from whichever
+          half failed first (rule has priority because a missing component
+          is a more actionable signal for the controller).
+        * `reward_delta` is the sum.
+        """
+        rule_pass = bool(rule.get("passed", False))
+        pipe_pass = bool(pipeline.get("passed", False))
+        scores = [float(rule.get("score", 0.0)), float(pipeline.get("score", 0.0))]
+
+        errors: list[str] = []
+        for e in rule.get("errors", []):
+            errors.append(f"[rule] {e}")
+        errors.extend(pipeline.get("errors", []))
+
+        warnings: list[str] = []
+        for w in rule.get("warnings", []):
+            warnings.append(f"[rule] {w}")
+        warnings.extend(pipeline.get("warnings", []))
+
+        if not rule_pass:
+            failed_component = rule.get("failed_component")
+            suggested = rule.get("suggested_next_agent")
+        else:
+            failed_component = pipeline.get("failed_component")
+            suggested = pipeline.get("suggested_next_agent")
+
+        return {
+            "passed": rule_pass and pipe_pass,
+            "score": sum(scores) / len(scores),
+            "errors": errors,
+            "warnings": warnings,
+            "failed_component": failed_component,
+            "suggested_next_agent": suggested,
+            "reward_delta": float(rule.get("reward_delta", 0.0))
+            + float(pipeline.get("reward_delta", 0.0)),
         }
 
     def _refresh_state(

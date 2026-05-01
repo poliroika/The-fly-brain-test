@@ -148,8 +148,8 @@ impl PyMessageBus {
         match self.inner.pop(recipient) {
             None => Ok(None),
             Some(msg) => {
-                let v = serde_json::to_value(&msg)
-                    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+                let v =
+                    serde_json::to_value(&msg).map_err(|e| PyValueError::new_err(e.to_string()))?;
                 Ok(Some(json_to_py(py, &v)?))
             }
         }
@@ -261,7 +261,8 @@ impl PyTraceWriter {
         let trace = writer
             .finalize(final_answer, v, m)
             .map_err(|e| PyIOError::new_err(e.to_string()))?;
-        let value = serde_json::to_value(&trace).map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let value =
+            serde_json::to_value(&trace).map_err(|e| PyValueError::new_err(e.to_string()))?;
         json_to_py(py, &value)
     }
 }

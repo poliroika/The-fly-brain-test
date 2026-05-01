@@ -34,12 +34,26 @@
 > three task types end-to-end on the mock LLM. See
 > [`docs/runtime.md`](docs/runtime.md) for the runbook.
 >
+> *Phase 3 (verification layer)* lands here: Rust `flybrain-verify`
+> grows `schema`, `tool_use`, `trace`, `unit_test` verifiers (24 unit
+> tests) on top of the existing `budget` verifier; PyO3 surface
+> exposes them as `schema_check` / `tool_use_check` / `trace_check` /
+> `unit_test_check`. Python `flybrain.verification` adds the
+> `FactualJudge` and `ReasoningJudge` LLM judges, and a
+> `VerificationPipeline` that dispatches per `task_type`. The runner
+> (`MAS.run`) now merges a cheap rule-based component check with the
+> full pipeline on every `call_verifier` and at the end of each task,
+> so every controller (Phase-2 manual, Phase-5 GNN/RNN) gets a real
+> `VerificationResult` instead of a placeholder. See
+> [`docs/verification.md`](docs/verification.md) for the runbook.
+>
 > The full implementation roadmap (12 phases, 48–56 days) is in
 > [`PLAN.md`](PLAN.md). Operator runbooks live in [`docs/`](docs/) — see
 > [`docs/architecture.md`](docs/architecture.md),
 > [`docs/data_contracts.md`](docs/data_contracts.md),
 > [`docs/graph_pipeline.md`](docs/graph_pipeline.md),
 > [`docs/runtime.md`](docs/runtime.md),
+> [`docs/verification.md`](docs/verification.md),
 > [`docs/rust_python_boundary.md`](docs/rust_python_boundary.md), and
 > [`docs/yandex_setup.md`](docs/yandex_setup.md).
 >

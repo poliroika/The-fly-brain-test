@@ -86,11 +86,8 @@ impl TraceWriter {
         self.trace.totals.cost_rub += step.cost_rub;
         if !step.tool_calls.is_empty() {
             self.trace.totals.tool_calls += step.tool_calls.len() as u32;
-            self.trace.totals.failed_tool_calls += step
-                .tool_calls
-                .iter()
-                .filter(|t| !t.ok)
-                .count() as u32;
+            self.trace.totals.failed_tool_calls +=
+                step.tool_calls.iter().filter(|t| !t.ok).count() as u32;
         }
         if step.tokens_in > 0 || step.tokens_out > 0 {
             self.trace.totals.llm_calls += 1;
@@ -186,8 +183,7 @@ mod tests {
     fn record_step_persists_jsonl() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("traces").join("t1.steps.jsonl");
-        let mut w =
-            TraceWriter::open("t1", TaskType::Coding, Some(&path)).unwrap();
+        let mut w = TraceWriter::open("t1", TaskType::Coding, Some(&path)).unwrap();
         w.record_step(step(0, 10, 5)).unwrap();
         w.record_step(step(1, 0, 0)).unwrap();
         let _ = w.finalize(Some("done".into()), None, json!({})).unwrap();
@@ -204,11 +200,7 @@ mod tests {
         let mut w = TraceWriter::open("t1", TaskType::Math, None).unwrap();
         w.record_step(step(0, 10, 5)).unwrap();
         let t = w
-            .finalize(
-                Some("42".into()),
-                None,
-                json!({"controller": "manual"}),
-            )
+            .finalize(Some("42".into()), None, json!({"controller": "manual"}))
             .unwrap();
         assert_eq!(t.final_answer.as_deref(), Some("42"));
         assert_eq!(t.metadata["controller"], "manual");

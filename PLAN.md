@@ -552,14 +552,19 @@ simulation pretraining на Phase 6 компенсирует маленькую 
   6. `flybrain.runtime.runner.MAS.run(task, controller)` ✅; `flybrain.controller/{base, manual, random}` ✅.
 - **Exit:** `tests/python/integration/test_mas_runtime_mock.py` гоняет 3 типа задач (coding/math/research) + random-controller smoke на mock-LLM ✅; traces валидные, JSONL персистится. Runbook: [`docs/runtime.md`](docs/runtime.md).
 
-### Phase 3 — Verification Layer (4–5 дней) ⬆️ +1 vs v1, ║ с Phase 2
-- Rust:
-  1. `flybrain-verify/{schema (jsonschema-rs), tool_use, budget, trace, unit_test}`.
-  2. PyO3-биндинги.
-- Python:
-  3. `flybrain.verification.llm/{factual, reasoning}` через Yandex LLM judge.
-  4. `flybrain.verification.pipeline` — оркестрирует Rust + Python verifier’ы по `task_type`.
-- **Exit:** unit-тесты на pass/fail для каждого verifier’а; `VerificationResult` стабилен.
+### Phase 3 — Verification Layer (4–5 дней) ⬆️ +1 vs v1, ║ с Phase 2 — **DONE**
+- Rust: `flybrain-verify/{schema, tool_use, budget, trace, unit_test}` (hand-rolled
+  schema validator instead of jsonschema-rs to keep the workspace on edition 2021)
+  + PyO3 bindings (`schema_check`, `tool_use_check`, `trace_check`, `unit_test_check`).
+- Python: `flybrain.verification.llm/{factual, reasoning}` LLM judges + shared
+  `_judge.parse_judge_response`; `flybrain.verification.pipeline.VerificationPipeline`
+  dispatches per `task_type`; `MAS.run` merges the pipeline verdict with a
+  cheap rule-based component check on every `call_verifier` and at task end.
+- **Exit reached:** 24 cargo tests in `flybrain-verify`, 30 pytest tests across
+  `tests/python/unit/test_verifier_native.py`, `test_verification_pipeline.py`
+  and `test_verification_judges.py`, the four MAS-runtime integration tests
+  still green; `VerificationResult` shape unchanged. See
+  [`docs/verification.md`](docs/verification.md).
 
 ### Phase 4 — Embeddings (2–3 дня)
 - `task_emb.py` — Yandex `text-search-query` с SQLite-кешем.

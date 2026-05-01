@@ -10,6 +10,7 @@
 
 mod graph_py;
 mod runtime_py;
+mod verify_py;
 
 use flybrain_core::action::GraphAction;
 use flybrain_core::agent::AgentSpec;
@@ -128,7 +129,7 @@ fn flybrain_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
     let modinfo = PyDict::new_bound(py);
     modinfo.set_item("crate", "flybrain-py")?;
-    modinfo.set_item("phase", "2-runtime")?;
+    modinfo.set_item("phase", "3-verification")?;
     m.add("__modinfo__", modinfo)?;
 
     m.add_function(wrap_pyfunction!(agent_spec_round_trip, m)?)?;
@@ -143,6 +144,7 @@ fn flybrain_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     graph_py::register(py, m)?;
     runtime_py::register(py, m)?;
+    verify_py::register(py, m)?;
 
     Ok(())
 }

@@ -20,8 +20,8 @@ def make_graph() -> dict:
     }
 
 
-def test_modinfo_advertises_phase_2() -> None:
-    assert native.__modinfo__["phase"] == "2-runtime"
+def test_modinfo_advertises_phase_3() -> None:
+    assert native.__modinfo__["phase"] == "3-verification"
 
 
 def test_scheduler_activate_known_agent() -> None:
