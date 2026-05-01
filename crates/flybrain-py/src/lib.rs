@@ -1,10 +1,15 @@
 //! PyO3 bindings exposing the FlyBrain Rust core to Python as `flybrain_native`.
 //!
-//! Phase 0 only exposes JSON round-trip helpers for the core types and a
-//! synthetic graph builder. Full bindings (AgentGraph mutate API, runtime
-//! scheduler, deterministic verifiers) land in later phases.
+//! Phase 0 shipped JSON round-trip helpers + the budget verifier.
+//! Phase 1 added the graph builder pipeline (`graph_py`).
+//! Phase 2 adds the MAS runtime (`runtime_py`): `Scheduler`, `MessageBus`,
+//! and `TraceWriter` are exposed as `#[pyclass]` types so Python can hold
+//! a stateful handle across many ticks of the loop. Their methods still
+//! exchange JSON-shaped dicts to keep the data contracts in sync with
+//! `crates/flybrain-core` (see `docs/data_contracts.md`).
 
 mod graph_py;
+mod runtime_py;
 
 use flybrain_core::action::GraphAction;
 use flybrain_core::agent::AgentSpec;
@@ -123,7 +128,7 @@ fn flybrain_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
     let modinfo = PyDict::new_bound(py);
     modinfo.set_item("crate", "flybrain-py")?;
-    modinfo.set_item("phase", "1-graph")?;
+    modinfo.set_item("phase", "2-runtime")?;
     m.add("__modinfo__", modinfo)?;
 
     m.add_function(wrap_pyfunction!(agent_spec_round_trip, m)?)?;
@@ -137,6 +142,7 @@ fn flybrain_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(budget_check, m)?)?;
 
     graph_py::register(py, m)?;
+    runtime_py::register(py, m)?;
 
     Ok(())
 }

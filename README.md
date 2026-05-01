@@ -16,7 +16,7 @@
 > Studio LLM client (mock + live, with SQLite cache and budget tracker) +
 > Hydra configs + Dockerfile + Yandex Cloud Terraform skeleton + dual CI.
 >
-> *Phase 1 (Graph builder)* lands here: synthetic + Zenodo CSV loaders,
+> *Phase 1 (Graph builder)* added: synthetic + Zenodo CSV loaders,
 > five compression methods (region_agg, celltype_agg, Louvain, Leiden,
 > Spectral) — all deterministic for `(graph, K, seed)`, gzip+JSON `.fbg`
 > binary format with companion node-metadata JSON, builder orchestrator,
@@ -24,11 +24,22 @@
 > `notebooks/01_explore_connectome.ipynb`. See
 > [`docs/graph_pipeline.md`](docs/graph_pipeline.md) for the runbook.
 >
+> *Phase 2 (MAS runtime + agents)* lands here: Rust `flybrain-runtime`
+> (`MessageBus`, `Scheduler`, `TraceWriter` with 14 unit tests + PyO3
+> bindings); Python `flybrain.runtime` (`Agent`, `MAS.run`, episodic +
+> vector memory, BM25 retriever, four deterministic tools);
+> `flybrain.controller` (`Manual`, `Random`); `flybrain.agents.specs`
+> with 15 minimal + 10 extended `AgentSpec`s wired to
+> `configs/llm/yandex.yaml::agent_to_model`; integration test running
+> three task types end-to-end on the mock LLM. See
+> [`docs/runtime.md`](docs/runtime.md) for the runbook.
+>
 > The full implementation roadmap (12 phases, 48–56 days) is in
 > [`PLAN.md`](PLAN.md). Operator runbooks live in [`docs/`](docs/) — see
 > [`docs/architecture.md`](docs/architecture.md),
 > [`docs/data_contracts.md`](docs/data_contracts.md),
 > [`docs/graph_pipeline.md`](docs/graph_pipeline.md),
+> [`docs/runtime.md`](docs/runtime.md),
 > [`docs/rust_python_boundary.md`](docs/rust_python_boundary.md), and
 > [`docs/yandex_setup.md`](docs/yandex_setup.md).
 >

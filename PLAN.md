@@ -541,16 +541,16 @@ simulation pretraining на Phase 6 компенсирует маленькую 
   6. `notebooks/01_explore_connectome.ipynb` — distrib плотности, modularity, степеней.
 - **Exit:** для K∈{32,64,128,256} есть `.fbg` + `node_metadata.json`; cargo-тесты на стабильность compression при фиксированном seed.
 
-### Phase 2 — MAS Runtime + Agents (7–9 дней) ⬆️ +2 vs v1
+### Phase 2 — MAS Runtime + Agents (7–9 дней) ⬆️ +2 vs v1 — **DONE (this PR)**
 - Rust:
-  1. `flybrain-runtime/{message_bus, agent_graph, scheduler, trace_writer, hash}`.
-  2. PyO3-биндинги для `AgentGraph.apply(action)`, `Scheduler.tick(callback)`, `TraceWriter`.
+  1. `flybrain-runtime/{bus, scheduler, trace_writer}` ✅ (14 cargo tests).
+  2. PyO3-биндинги для `Scheduler.apply(action)`, `MessageBus.send/pop`, `TraceWriter.record_step/finalize` ✅.
 - Python:
-  3. `flybrain.runtime.tools/{python_exec, web_search, file_tool, unit_tester}` с timeout/retry.
-  4. `flybrain.runtime.memory/{episodic, vector}` + `retriever/bm25`.
-  5. ≥20 `AgentSpec` в `flybrain.agents.specs/` + промпты в `agents/prompts/`.
-  6. `flybrain.runtime.runner.MAS.run(task, controller)` — orchestrates: Rust scheduler ↔ Python agent.step ↔ Yandex LLM.
-- **Exit:** `tests/python/integration/test_mas_runtime_mock.py` гоняет 3 типа задач (coding/math/research) на mock-LLM, traces валидные.
+  3. `flybrain.runtime.tools/{python_exec, web_search, file_tool, unit_tester}` с timeout/retry ✅.
+  4. `flybrain.runtime.memory/{episodic, vector}` + `retriever/bm25` ✅.
+  5. 25 `AgentSpec` в `flybrain.agents.specs.py` + tier mapping ✅.
+  6. `flybrain.runtime.runner.MAS.run(task, controller)` ✅; `flybrain.controller/{base, manual, random}` ✅.
+- **Exit:** `tests/python/integration/test_mas_runtime_mock.py` гоняет 3 типа задач (coding/math/research) + random-controller smoke на mock-LLM ✅; traces валидные, JSONL персистится. Runbook: [`docs/runtime.md`](docs/runtime.md).
 
 ### Phase 3 — Verification Layer (4–5 дней) ⬆️ +1 vs v1, ║ с Phase 2
 - Rust:
