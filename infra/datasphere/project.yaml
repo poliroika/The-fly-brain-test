@@ -1,0 +1,13 @@
+# DataSphere project skeleton. Phase 12 hooks into `datasphere project create`.
+project:
+  name: flybrain-optimizer
+  description: |
+    FlyBrain Optimizer — connectome-prior controller for large multi-agent
+    LLM systems on Yandex AI Studio.
+  community: flybrain
+
+defaults:
+  cloud-instance-type: c1.4    # 4 vCPU, 16 GB RAM, no GPU (cheap default)
+
+storage:
+  attach-project-disk: true
