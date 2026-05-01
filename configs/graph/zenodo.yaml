@@ -1,0 +1,10 @@
+# Phase 1 will populate the zenodo loader. This is a placeholder.
+source: zenodo
+zenodo_record_id: 7884514  # FlyWire 783 dataset (subject to change in Phase 1)
+cache_dir: data/flybrain/raw
+target_K: 64
+output: data/flybrain/fly_graph_64.fbg
+
+defaults:
+  - compression: louvain
+  - _self_

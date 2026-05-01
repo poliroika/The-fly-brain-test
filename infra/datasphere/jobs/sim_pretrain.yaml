@@ -1,0 +1,13 @@
+name: flybrain-sim-pretrain
+desc: "Phase 6: simulation pretraining of the controller (no real LLM calls)."
+cmd: python -m flybrain.training.sim_pretrain +run.config=sim
+env:
+  vars:
+    PYTHONPATH: /workspace
+flags:
+  attach-project-disk: true
+inputs:
+  - data/flybrain/
+outputs:
+  - results/checkpoints/sim_${timestamp}.pt
+cloud-instance-type: g1.1
