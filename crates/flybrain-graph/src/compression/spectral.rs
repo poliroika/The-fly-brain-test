@@ -92,8 +92,8 @@ pub fn spectral(graph: &FlyGraph, target_k: usize, seed: u64) -> GraphResult<Clu
                     tmp[j] += deg_inv_sqrt[j] * w * xi;
                 }
             }
-            for i in 0..n {
-                vec_j[i] += tmp[i];
+            for (slot, t) in vec_j.iter_mut().zip(tmp.iter()).take(n) {
+                *slot += t;
             }
         }
         for j in 0..dim {
@@ -112,6 +112,8 @@ pub fn spectral(graph: &FlyGraph, target_k: usize, seed: u64) -> GraphResult<Clu
                 }
             }
         }
+        // Suppress unused-variable hint when dim==0 path collapses to no-op.
+        let _ = dim;
     }
 
     // Build embedding matrix: row i = (basis[0][i], basis[1][i], ...).
@@ -185,8 +187,8 @@ fn dot(a: &[f64], b: &[f64]) -> f64 {
 }
 
 fn axpy(y: &mut [f64], x: &[f64], a: f64) {
-    for i in 0..y.len() {
-        y[i] += a * x[i];
+    for (yv, xv) in y.iter_mut().zip(x.iter()) {
+        *yv += a * xv;
     }
 }
 
@@ -248,14 +250,15 @@ fn kmeans_cluster(points: &[Vec<f64>], k: usize, seed: u64) -> Vec<usize> {
         let mut new_centroids = vec![vec![0.0f64; dim]; k];
         for (i, &c) in assignment.iter().enumerate() {
             counts[c] += 1;
-            for d in 0..dim {
-                new_centroids[c][d] += points[i][d];
+            for (slot, p) in new_centroids[c].iter_mut().zip(points[i].iter()) {
+                *slot += p;
             }
         }
         for (c, count) in counts.iter().enumerate() {
             if *count > 0 {
-                for d in 0..dim {
-                    new_centroids[c][d] /= *count as f64;
+                let denom = *count as f64;
+                for v in new_centroids[c].iter_mut().take(dim) {
+                    *v /= denom;
                 }
                 centroids[c] = std::mem::take(&mut new_centroids[c]);
             }
