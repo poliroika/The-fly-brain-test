@@ -2,11 +2,27 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-research%20test%20assignment-orange" />
-  <img src="https://img.shields.io/badge/language-Python-blue" />
+  <img src="https://img.shields.io/badge/language-Rust%20%2B%20Python-blue" />
   <img src="https://img.shields.io/badge/MAS-dynamic%20graph-purple" />
   <img src="https://img.shields.io/badge/FlyWire-connectome-green" />
   <img src="https://img.shields.io/badge/RL-optional%20but%20recommended-red" />
 </p>
+
+> **Phase 0 status (this PR).** Bootstrap landed: cargo workspace
+> (`flybrain-core`, `flybrain-graph`, `flybrain-runtime`, `flybrain-verify`,
+> `flybrain-py`, `flybrain-cli`) + Python `flybrain` package + Yandex AI
+> Studio LLM client (mock + live, with SQLite cache and budget tracker) +
+> Hydra configs + Dockerfile + Yandex Cloud Terraform skeleton + dual CI.
+>
+> The full implementation roadmap (12 phases, 48–56 days) is in
+> [`PLAN.md`](PLAN.md). Operator runbooks live in [`docs/`](docs/) — see
+> [`docs/architecture.md`](docs/architecture.md),
+> [`docs/data_contracts.md`](docs/data_contracts.md),
+> [`docs/rust_python_boundary.md`](docs/rust_python_boundary.md), and
+> [`docs/yandex_setup.md`](docs/yandex_setup.md).
+>
+> Quick start: `make setup && make test`. The text below is the original
+> research test specification.
 
 ## 1. Кратко
 

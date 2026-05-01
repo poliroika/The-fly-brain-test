@@ -1,0 +1,12 @@
+name: flybrain-bench-min
+desc: "Phase 10: minimal benchmark suite (HumanEval + GSM8K + BBH-mini + synthetic)."
+cmd: python -m flybrain.benchmarks.runner +run.config=eval/min_set
+env:
+  vars:
+    YANDEX_FOLDER_ID: ${secrets.YANDEX_FOLDER_ID}
+    YANDEX_API_KEY: ${secrets.YANDEX_API_KEY}
+flags:
+  attach-project-disk: true
+outputs:
+  - results/tables/min_set_${timestamp}.json
+cloud-instance-type: g1.1

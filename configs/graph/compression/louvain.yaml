@@ -1,0 +1,3 @@
+method: louvain
+target_K: 64
+resolution: 1.0

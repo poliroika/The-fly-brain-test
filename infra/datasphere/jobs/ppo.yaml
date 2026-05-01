@@ -1,0 +1,14 @@
+name: flybrain-ppo
+desc: "Phase 8: PPO finetuning from imitation checkpoint."
+cmd: python -m flybrain.training.ppo +run.config=ppo
+env:
+  vars:
+    YANDEX_FOLDER_ID: ${secrets.YANDEX_FOLDER_ID}
+    YANDEX_API_KEY: ${secrets.YANDEX_API_KEY}
+flags:
+  attach-project-disk: true
+inputs:
+  - results/checkpoints/imitation_latest.pt
+outputs:
+  - results/checkpoints/ppo_${timestamp}.pt
+cloud-instance-type: g2.1

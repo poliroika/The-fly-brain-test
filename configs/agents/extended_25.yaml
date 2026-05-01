@@ -1,0 +1,16 @@
+# 25-agent extended MAS. Phase 2 will populate prompts/tools.
+defaults:
+  - minimal_15
+  - _self_
+
+extra_agents:
+  - { name: Refiner,           role: refiner,           system_prompt: "" }
+  - { name: SearchAgent,       role: search,            system_prompt: "" }
+  - { name: Researcher,        role: researcher,        system_prompt: "" }
+  - { name: ContextCompressor, role: compressor,        system_prompt: "" }
+  - { name: CitationChecker,   role: citation,          system_prompt: "" }
+  - { name: ConstraintChecker, role: constraints,       system_prompt: "" }
+  - { name: FailureRecovery,   role: recovery,          system_prompt: "" }
+  - { name: BudgetController,  role: budget_controller, system_prompt: "" }
+  - { name: ProofChecker,      role: proof,             system_prompt: "" }
+  - { name: SafetyFilter,      role: safety,            system_prompt: "" }
