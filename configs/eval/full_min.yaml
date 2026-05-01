@@ -1,0 +1,46 @@
+# Phase-10 evaluation config (PLAN.md §605, README §17).
+#
+# Mirrors `configs/eval/min_set.yaml` for backwards compatibility while
+# matching the canonical name (`full_min`) referenced from PLAN.md and
+# the `flybrain-py bench --suite full_min` invocation.
+
+suite: full_min  # `flybrain.baselines.BUILTIN_SUITES`
+backend: yandex
+budget_rub: 300
+parallelism: 4
+max_retries: 2
+
+benchmarks:
+  - name: humaneval
+    num_tasks: 80
+    timeout_s: 30
+  - name: gsm8k
+    num_tasks: 100
+    timeout_s: 20
+  - name: bbh_mini
+    num_tasks: 50
+    timeout_s: 30
+  - name: synthetic_routing
+    num_tasks: 200
+    timeout_s: 5
+
+# Smaller smoke variant runnable from CI on bundled fixtures.
+smoke:
+  suite: smoke
+  backend: mock
+  budget_rub: 0
+  parallelism: 1
+  max_retries: 1
+  benchmarks:
+    - name: humaneval
+      num_tasks: 3
+      timeout_s: 5
+    - name: gsm8k
+      num_tasks: 3
+      timeout_s: 5
+    - name: bbh_mini
+      num_tasks: 3
+      timeout_s: 5
+    - name: synthetic_routing
+      num_tasks: 5
+      timeout_s: 2

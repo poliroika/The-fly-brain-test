@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+.venv/
+build/
+dist/
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Data and results (regenerable; do not commit)
+data/flybrain/raw/
+data/flybrain/*.fbg
+data/flybrain/*.pt
+data/traces/*
+# Allow PLAN.md §616 cherry-picked traces (Phase 11 deliverable).
+!data/traces/sample/
+data/cache/
+results/
+
+# Local secrets
+.env
+.env.local
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.*
+infra/terraform/.terraform.lock.hcl
+runs/

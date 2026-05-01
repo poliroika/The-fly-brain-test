@@ -1,0 +1,2 @@
+method: region_agg
+target_K: 64
