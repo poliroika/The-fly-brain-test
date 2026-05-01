@@ -2,11 +2,64 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-research%20test%20assignment-orange" />
-  <img src="https://img.shields.io/badge/language-Python-blue" />
+  <img src="https://img.shields.io/badge/language-Rust%20%2B%20Python-blue" />
   <img src="https://img.shields.io/badge/MAS-dynamic%20graph-purple" />
   <img src="https://img.shields.io/badge/FlyWire-connectome-green" />
   <img src="https://img.shields.io/badge/RL-optional%20but%20recommended-red" />
 </p>
+
+> **Phase 0 + Phase 1 status (this PR / branch).**
+>
+> *Phase 0 (Bootstrap)* is open as a separate PR: cargo workspace
+> (`flybrain-core`, `flybrain-graph`, `flybrain-runtime`, `flybrain-verify`,
+> `flybrain-py`, `flybrain-cli`) + Python `flybrain` package + Yandex AI
+> Studio LLM client (mock + live, with SQLite cache and budget tracker) +
+> Hydra configs + Dockerfile + Yandex Cloud Terraform skeleton + dual CI.
+>
+> *Phase 1 (Graph builder)* added: synthetic + Zenodo CSV loaders,
+> five compression methods (region_agg, celltype_agg, Louvain, Leiden,
+> Spectral) — all deterministic for `(graph, K, seed)`, gzip+JSON `.fbg`
+> binary format with companion node-metadata JSON, builder orchestrator,
+> PyO3 bindings, `flybrain build` / `flybrain-py build` CLIs, and
+> `notebooks/01_explore_connectome.ipynb`. See
+> [`docs/graph_pipeline.md`](docs/graph_pipeline.md) for the runbook.
+>
+> *Phase 2 (MAS runtime + agents)* lands here: Rust `flybrain-runtime`
+> (`MessageBus`, `Scheduler`, `TraceWriter` with 14 unit tests + PyO3
+> bindings); Python `flybrain.runtime` (`Agent`, `MAS.run`, episodic +
+> vector memory, BM25 retriever, four deterministic tools);
+> `flybrain.controller` (`Manual`, `Random`); `flybrain.agents.specs`
+> with 15 minimal + 10 extended `AgentSpec`s wired to
+> `configs/llm/yandex.yaml::agent_to_model`; integration test running
+> three task types end-to-end on the mock LLM. See
+> [`docs/runtime.md`](docs/runtime.md) for the runbook.
+>
+> *Phase 3 (verification layer)* lands here: Rust `flybrain-verify`
+> grows `schema`, `tool_use`, `trace`, `unit_test` verifiers (24 unit
+> tests) on top of the existing `budget` verifier; PyO3 surface
+> exposes them as `schema_check` / `tool_use_check` / `trace_check` /
+> `unit_test_check`. Python `flybrain.verification` adds the
+> `FactualJudge` and `ReasoningJudge` LLM judges, and a
+> `VerificationPipeline` that dispatches per `task_type`. The runner
+> (`MAS.run`) now merges a cheap rule-based component check with the
+> full pipeline on every `call_verifier` and at the end of each task,
+> so every controller (Phase-2 manual, Phase-5 GNN/RNN) gets a real
+> `VerificationResult` instead of a placeholder. See
+> [`docs/verification.md`](docs/verification.md) for the runbook.
+>
+> The full implementation roadmap (12 phases, 48–56 days) is in
+> [`PLAN.md`](PLAN.md). Operator runbooks live in [`docs/`](docs/) — see
+> [`docs/architecture.md`](docs/architecture.md),
+> [`docs/data_contracts.md`](docs/data_contracts.md),
+> [`docs/graph_pipeline.md`](docs/graph_pipeline.md),
+> [`docs/runtime.md`](docs/runtime.md),
+> [`docs/verification.md`](docs/verification.md),
+> [`docs/rust_python_boundary.md`](docs/rust_python_boundary.md), and
+> [`docs/yandex_setup.md`](docs/yandex_setup.md).
+>
+> Quick start: `make setup && make test`. To produce the four canonical
+> compressed graphs: `flybrain build --all`. The text below is the
+> original research test specification.
 
 ## 1. Кратко
 

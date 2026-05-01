@@ -1,0 +1,19 @@
+# 15-agent minimal MAS (per README §6 minimum). Phase 2 will fill in
+# system prompts, tools, and per-agent schemas. Lite/Pro mapping comes
+# from configs/llm/yandex.yaml.
+agents:
+  - { name: Planner,           role: planner,           system_prompt: "" }
+  - { name: TaskDecomposer,    role: decomposer,        system_prompt: "" }
+  - { name: Coder,             role: coder,             system_prompt: "" }
+  - { name: Debugger,          role: debugger,          system_prompt: "" }
+  - { name: TestRunner,        role: tester,            system_prompt: "" }
+  - { name: MathSolver,        role: math,              system_prompt: "" }
+  - { name: Retriever,         role: retriever,         system_prompt: "" }
+  - { name: MemoryReader,      role: memory_reader,     system_prompt: "" }
+  - { name: MemoryWriter,      role: memory_writer,     system_prompt: "" }
+  - { name: ToolExecutor,      role: tool_executor,     system_prompt: "" }
+  - { name: SchemaValidator,   role: schema_verifier,   system_prompt: "" }
+  - { name: Verifier,          role: verifier,          system_prompt: "" }
+  - { name: Critic,            role: critic,            system_prompt: "" }
+  - { name: Judge,             role: judge,             system_prompt: "" }
+  - { name: Finalizer,         role: finalizer,         system_prompt: "" }
