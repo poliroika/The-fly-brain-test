@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import math
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -46,6 +47,19 @@ from flybrain.llm.mock_client import MockRule
 from flybrain.llm.yandex_client import YandexConfig
 from flybrain.runtime import MAS, Agent, AgentSpec, MASConfig
 from flybrain.runtime.tools import default_tool_registry
+
+
+def _strict_json(value: Any) -> Any:
+    """Recursively convert non-JSON-strict floats (`inf`, `nan`) to
+    `None` so the resulting `json.dumps` output is valid strict JSON
+    (parseable by browsers / `JSON.parse`)."""
+    if isinstance(value, float):
+        return None if not math.isfinite(value) else value
+    if isinstance(value, dict):
+        return {k: _strict_json(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_strict_json(v) for v in value]
+    return value
 
 
 def _agent_factory(spec: AgentSpec, llm: Any) -> Agent:
@@ -200,7 +214,9 @@ async def run(args: argparse.Namespace) -> int:
                 max_steps=args.max_steps,
             )
         )
-    (out_dir / "summaries.json").write_text(json.dumps(summaries, indent=2))
+    (out_dir / "summaries.json").write_text(
+        json.dumps(_strict_json(summaries), indent=2, allow_nan=False)
+    )
 
     overall: list[AggregateMetrics] = []
     per_benchmark: dict[str, list[AggregateMetrics]] = {}
@@ -215,13 +231,13 @@ async def run(args: argparse.Namespace) -> int:
         overall.append(aggregate(all_metrics, name=spec.name, benchmark="_overall"))
 
     (out_dir / "comparison_overall.json").write_text(
-        json.dumps([asdict(r) for r in overall], indent=2)
+        json.dumps([_strict_json(asdict(r)) for r in overall], indent=2, allow_nan=False)
     )
     (out_dir / "comparison_overall.md").write_text(markdown_table(overall))
     (out_dir / "comparison_overall.csv").write_text(csv_table(overall))
     for benchmark, rows in per_benchmark.items():
         (out_dir / f"comparison_{benchmark}.json").write_text(
-            json.dumps([asdict(r) for r in rows], indent=2)
+            json.dumps([_strict_json(asdict(r)) for r in rows], indent=2, allow_nan=False)
         )
         (out_dir / f"comparison_{benchmark}.md").write_text(markdown_table(rows))
         (out_dir / f"comparison_{benchmark}.csv").write_text(csv_table(rows))
