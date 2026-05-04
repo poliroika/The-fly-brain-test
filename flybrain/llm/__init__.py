@@ -4,7 +4,7 @@ Phase 0 ships:
 
 * `LLMClient` ABC and `LLMResponse` / `Message` value types.
 * `MockLLMClient` for deterministic CI runs.
-* `YandexClient` thin wrapper around `yandex-cloud-ml-sdk`.
+* `YandexClient` thin wrapper around `yandex-ai-studio-sdk`.
 * `SQLiteCache` keyed on `hash(messages, model, temperature)`.
 * `BudgetTracker` keeping running cost / token / call counters.
 """

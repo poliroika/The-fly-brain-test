@@ -1,9 +1,13 @@
-"""YandexGPT chat completion client built on `yandex-cloud-ml-sdk`.
+"""YandexGPT chat completion client built on `yandex-ai-studio-sdk`.
 
 Phase 0 implements the chat path with cache + budget tracking. Embedding
 support, function calling and streaming arrive in subsequent phases. We
-keep the dependency on `yandex_cloud_ml_sdk` lazy so the module imports
+keep the dependency on `yandex_ai_studio_sdk` lazy so the module imports
 cleanly in test environments where the SDK isn't installed.
+
+The Yandex AI Studio SDK supersedes the deprecated `yandex-cloud-ml-sdk`;
+the public surface used here (`AsyncAIStudio.models.completions(...)`)
+is API-compatible with the old `AsyncYCloudML.models.completions(...)`.
 """
 
 from __future__ import annotations
@@ -56,13 +60,13 @@ class YandexClient(LLMClient):
     def _get_sdk(self) -> Any:
         if self._sdk is None:
             try:
-                from yandex_cloud_ml_sdk import AsyncYCloudML
+                from yandex_ai_studio_sdk import AsyncAIStudio
             except ImportError as e:  # pragma: no cover - runtime dep
                 raise RuntimeError(
-                    "yandex-cloud-ml-sdk is not installed; "
-                    "install with `uv pip install yandex-cloud-ml-sdk`"
+                    "yandex-ai-studio-sdk is not installed; "
+                    "install with `uv pip install yandex-ai-studio-sdk`"
                 ) from e
-            self._sdk = AsyncYCloudML(folder_id=self.config.folder_id, auth=self.config.api_key)
+            self._sdk = AsyncAIStudio(folder_id=self.config.folder_id, auth=self.config.api_key)
         return self._sdk
 
     async def complete(

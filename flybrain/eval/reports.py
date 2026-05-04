@@ -135,7 +135,14 @@ def _cost_quality_section(overall: list[AggregateMetrics]) -> str:
         return "_(no methods to summarise)_\n"
     lines = ["| Method | Success | Cost / task ₽ | Cost / solved ₽ |", "|---|---|---|---|"]
     for r in sorted(overall, key=lambda x: -x.success_rate):
-        cps = "∞" if not math.isfinite(r.cost_per_solved_rub) else f"{r.cost_per_solved_rub:.3f}"
+        # Strict-JSON serialisation maps `float("inf")` to `null`, which loads
+        # back as `None` (see `flybrain.eval.tables._fmt_value`); render those
+        # the same way as live-rendered ∞ rather than crashing on `isfinite`.
+        cps_value = r.cost_per_solved_rub
+        if cps_value is None or not math.isfinite(cps_value):
+            cps = "∞"
+        else:
+            cps = f"{cps_value:.3f}"
         lines.append(f"| `{r.name}` | {r.success_rate * 100:.1f}% | {r.avg_cost_rub:.3f} | {cps} |")
     return "\n".join(lines) + "\n"
 

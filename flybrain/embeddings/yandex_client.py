@@ -1,7 +1,7 @@
 """Yandex AI Studio text-embedding client.
 
 Mirrors [`flybrain.llm.yandex_client.YandexClient`](../llm/yandex_client.py)
-in style: lazy import of `yandex_cloud_ml_sdk`, env-var driven config,
+in style: lazy import of `yandex_ai_studio_sdk`, env-var driven config,
 optional cache + budget tracker. Two operating modes match the Yandex
 API surface (`text-search-doc/latest` for documents,
 `text-search-query/latest` for queries).
@@ -68,13 +68,13 @@ class YandexEmbeddingClient(EmbeddingClient):
     def _get_sdk(self) -> Any:
         if self._sdk is None:
             try:
-                from yandex_cloud_ml_sdk import AsyncYCloudML
+                from yandex_ai_studio_sdk import AsyncAIStudio
             except ImportError as e:  # pragma: no cover - runtime dep
                 raise RuntimeError(
-                    "yandex-cloud-ml-sdk is not installed; "
-                    "install with `uv pip install yandex-cloud-ml-sdk`"
+                    "yandex-ai-studio-sdk is not installed; "
+                    "install with `uv pip install yandex-ai-studio-sdk`"
                 ) from e
-            self._sdk = AsyncYCloudML(folder_id=self.config.folder_id, auth=self.config.api_key)
+            self._sdk = AsyncAIStudio(folder_id=self.config.folder_id, auth=self.config.api_key)
         return self._sdk
 
     async def embed(
@@ -93,11 +93,7 @@ class YandexEmbeddingClient(EmbeddingClient):
 
         sdk = self._get_sdk()
         t0 = time.perf_counter()
-        try:
-            result = await sdk.models.text_embeddings(model_uri).run(text)
-        except AttributeError:  # pragma: no cover - SDK schema drift
-            # Older SDKs use `embedding(uri).run(text)` instead.
-            result = await sdk.models.embedding(model_uri).run(text)
+        result = await sdk.models.text_embeddings(model_uri).run(text)
         latency_ms = int((time.perf_counter() - t0) * 1000)
 
         # The SDK returns either a list[float] or an object with `.embedding`

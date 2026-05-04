@@ -20,7 +20,7 @@ why, and how to extend it.
 
 ## What goes in Python
 
-* **LLM client.** `yandex-cloud-ml-sdk` is Python-only.
+* **LLM client.** `yandex-ai-studio-sdk` is Python-only.
 * **Agent step.** Anything that talks to the LLM (prompts, tool dispatch, retry
   policy, function-calling).
 * **Controller.** PyTorch + PyG; the Rust ML ecosystem (`tch-rs`, `burn`) is

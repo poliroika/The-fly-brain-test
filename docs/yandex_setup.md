@@ -79,7 +79,7 @@ re-runs of identical (model, temperature, messages) tuples.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `RuntimeError: YANDEX_FOLDER_ID is not set` | env var missing | `export YANDEX_FOLDER_ID=...` (or lowercase `folder_id`) |
-| `RuntimeError: yandex-cloud-ml-sdk is not installed` | dev extra not installed | `uv pip install yandex-cloud-ml-sdk` or `make install` |
+| `RuntimeError: yandex-ai-studio-sdk is not installed` | dev extra not installed | `uv pip install yandex-ai-studio-sdk` or `make install` |
 | `BudgetExceededError` | hard cap reached | raise `hard_cap_rub` in `configs/llm/yandex.yaml` or wait for next session |
 | 4xx from SDK | bad folder id / key | re-check provisioning step, role bindings |
 | 429 from SDK | rate limit | reduce `concurrency.max_in_flight`; Phase 0 default is 4 |

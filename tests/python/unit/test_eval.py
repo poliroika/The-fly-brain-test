@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 
@@ -191,6 +192,30 @@ def test_render_report_inlines_tables_and_traces() -> None:
     assert "## 9. Discussion" in text
 
 
+def test_render_report_handles_none_cost_per_solved() -> None:
+    """Strict-JSON serialisation of `float('inf')` becomes `null` in
+    `comparison_overall.json`, which loads back as `None`. The standalone
+    `flybrain-py report` path used to crash with `TypeError` from
+    `math.isfinite(None)`; the report should now render `∞` instead.
+    """
+    # Mimic what `AggregateMetrics(**row)` produces after a JSON round-trip
+    # on a method with zero solved tasks.
+    row = _agg("dud", success=0.0, cost_per_solved=float("inf"))
+    row_dict = dataclasses.asdict(row)
+    row_dict["cost_per_solved_rub"] = None
+    overall = [AggregateMetrics(**row_dict)]
+    text = render_report(
+        ReportInputs(
+            suite_name="full_min",
+            overall=overall,
+            per_benchmark={"humaneval": overall},
+            trace_paths=[],
+        )
+    )
+    assert "∞" in text
+    assert "dud" in text
+
+
 def test_write_report_creates_parents(tmp_path: Path) -> None:
     out = tmp_path / "nested" / "report.md"
     write_report(
@@ -209,34 +234,58 @@ def test_write_report_creates_parents(tmp_path: Path) -> None:
 # -- cherry-pick selection -----------------------------------------------------
 
 
-def _write_trace(p: Path, *, passed: bool, score: float, fc: str | None,
-                 densities: list[float] | None = None) -> None:
+def _write_trace(
+    p: Path, *, passed: bool, score: float, fc: str | None, densities: list[float] | None = None
+) -> None:
     densities = densities or [0.2, 0.3]
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps({
-        "task_id": p.stem,
-        "task_type": "coding",
-        "steps": [{"graph_action": {"kind": "activate_agent", "agent": "A"},
-                   "graph_density": d} for d in densities],
-        "totals": {"tokens_in": 1, "tokens_out": 1, "llm_calls": 1,
-                   "tool_calls": 0, "failed_tool_calls": 0,
-                   "latency_ms": 1, "cost_rub": 0.01},
-        "verification": {"passed": passed, "score": score,
-                         "failed_component": fc},
-    }))
+    p.write_text(
+        json.dumps(
+            {
+                "task_id": p.stem,
+                "task_type": "coding",
+                "steps": [
+                    {"graph_action": {"kind": "activate_agent", "agent": "A"}, "graph_density": d}
+                    for d in densities
+                ],
+                "totals": {
+                    "tokens_in": 1,
+                    "tokens_out": 1,
+                    "llm_calls": 1,
+                    "tool_calls": 0,
+                    "failed_tool_calls": 0,
+                    "latency_ms": 1,
+                    "cost_rub": 0.01,
+                },
+                "verification": {"passed": passed, "score": score, "failed_component": fc},
+            }
+        )
+    )
 
 
 def test_select_cherry_picks_returns_solved_failed_and_routing(tmp_path: Path) -> None:
     # Solved trace, high score.
-    _write_trace(tmp_path / "manual_graph" / "humaneval" / "good.trace.json",
-                 passed=True, score=0.95, fc=None)
+    _write_trace(
+        tmp_path / "manual_graph" / "humaneval" / "good.trace.json",
+        passed=True,
+        score=0.95,
+        fc=None,
+    )
     # Failed trace with explicit failed_component.
-    _write_trace(tmp_path / "random_sparse" / "humaneval" / "bad.trace.json",
-                 passed=False, score=0.30, fc="tests_run")
+    _write_trace(
+        tmp_path / "random_sparse" / "humaneval" / "bad.trace.json",
+        passed=False,
+        score=0.30,
+        fc="tests_run",
+    )
     # Routing-interesting trace (wide density spread).
-    _write_trace(tmp_path / "fully_connected" / "humaneval" / "wild.trace.json",
-                 passed=True, score=0.80, fc=None,
-                 densities=[0.05, 0.95, 0.4, 0.6])
+    _write_trace(
+        tmp_path / "fully_connected" / "humaneval" / "wild.trace.json",
+        passed=True,
+        score=0.80,
+        fc=None,
+        densities=[0.05, 0.95, 0.4, 0.6],
+    )
 
     picks = select_cherry_picks(tmp_path, max_picks=3)
     paths = {p.path.name: p.reason for p in picks}

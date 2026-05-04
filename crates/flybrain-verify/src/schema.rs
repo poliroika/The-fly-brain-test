@@ -5,8 +5,8 @@
 //! only emit two shapes — final-answer envelopes and tool args — so a
 //! hand-rolled subset is enough:
 //!
-//! * `type`   ∈ {`"object"`, `"array"`, `"string"`, `"number"`,
-//!              `"integer"`, `"boolean"`, `"null"`} (or a list of those)
+//! * `type` ∈ {`"object"`, `"array"`, `"string"`, `"number"`,
+//!   `"integer"`, `"boolean"`, `"null"`} (or a list of those)
 //! * `required: [String]` for `"object"`s
 //! * `properties: { name: <subschema> }`
 //! * `items: <subschema>` for `"array"`s

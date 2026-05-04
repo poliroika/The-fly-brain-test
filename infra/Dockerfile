@@ -52,7 +52,7 @@ RUN pip install /tmp/*.whl \
         "pydantic>=2.6,<3" \
         "hydra-core>=1.3,<2" \
         "omegaconf>=2.3,<3" \
-        "yandex-cloud-ml-sdk>=0.4,<1" \
+        "yandex-ai-studio-sdk>=0.20,<1" \
         "tenacity>=8.2,<9" \
         "tqdm>=4.66" \
         "rich>=13.7" \
