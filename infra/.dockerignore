@@ -1,0 +1,10 @@
+.venv/
+target/
+.git/
+.github/
+**/__pycache__/
+**/*.pyc
+data/
+results/
+notebooks/
+docs/

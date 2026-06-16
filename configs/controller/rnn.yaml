@@ -1,0 +1,7 @@
+variant: rnn
+hidden_dim: 256
+nonlinearity: tanh
+fly_prior:
+  use: true
+  K: 64
+  spectral_normalize_A: true

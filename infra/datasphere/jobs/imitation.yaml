@@ -1,0 +1,15 @@
+name: flybrain-imitation
+desc: "Phase 7: imitation learning from expert traces (uses YandexGPT)."
+cmd: python -m flybrain.training.imitation +run.config=imitation
+env:
+  vars:
+    YANDEX_FOLDER_ID: ${secrets.YANDEX_FOLDER_ID}
+    YANDEX_API_KEY: ${secrets.YANDEX_API_KEY}
+flags:
+  attach-project-disk: true
+inputs:
+  - data/traces/expert/
+  - data/flybrain/fly_graph_64.fbg
+outputs:
+  - results/checkpoints/imitation_${timestamp}.pt
+cloud-instance-type: g2.1

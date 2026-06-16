@@ -1,0 +1,63 @@
+name: python
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Create venv
+        run: uv venv --python 3.11 .venv
+
+      - name: Install Python deps
+        run: |
+          source .venv/bin/activate
+          uv pip install "maturin>=1.7,<2" "setuptools>=68" "wheel"
+          uv pip install -e ".[dev]" --no-build-isolation
+        env:
+          NO_COLOR: "1"
+
+      - name: Build Rust extension
+        run: |
+          source .venv/bin/activate
+          NO_COLOR=1 maturin develop --release
+        env:
+          NO_COLOR: "1"
+
+      - name: ruff check
+        run: |
+          source .venv/bin/activate
+          ruff check flybrain tests
+
+      - name: ruff format check
+        run: |
+          source .venv/bin/activate
+          ruff format --check flybrain tests
+
+      - name: mypy
+        run: |
+          source .venv/bin/activate
+          mypy flybrain
+
+      - name: pytest
+        run: |
+          source .venv/bin/activate
+          pytest tests/python/unit -q

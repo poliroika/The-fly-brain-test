@@ -1,0 +1,16 @@
+benchmarks:
+  - name: humaneval
+    num_tasks: 80
+    timeout_s: 30
+  - name: gsm8k
+    num_tasks: 100
+    timeout_s: 20
+  - name: bbh_mini
+    num_tasks: 50
+    timeout_s: 30
+  - name: synthetic_routing
+    num_tasks: 200
+    timeout_s: 5
+
+parallelism: 4
+retry_failed: true

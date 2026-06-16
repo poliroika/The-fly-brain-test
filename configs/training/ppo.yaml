@@ -1,0 +1,7 @@
+stage: ppo
+batch_size: 64
+lr: 3.0e-4
+epochs: 4
+clip_eps: 0.2
+gamma: 0.99
+gae_lambda: 0.95

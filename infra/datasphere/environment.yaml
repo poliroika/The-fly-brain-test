@@ -1,0 +1,5 @@
+name: flybrain
+description: "FlyBrain runtime image (Yandex Container Registry)."
+docker:
+  image: cr.yandex/${oc.env:YC_REGISTRY_ID}/flybrain:latest
+  username: iam-token

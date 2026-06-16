@@ -1,0 +1,5 @@
+variant: router
+hidden_dim: 256
+fly_prior:
+  use: true
+  regularizer_weight: 0.1

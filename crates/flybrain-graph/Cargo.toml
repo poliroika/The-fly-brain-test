@@ -1,0 +1,16 @@
+[package]
+name = "flybrain-graph"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "FlyWire connectome loaders and graph compression for FlyBrain Optimizer"
+
+[dependencies]
+flybrain-core = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+flate2 = { workspace = true }
+csv = { workspace = true }

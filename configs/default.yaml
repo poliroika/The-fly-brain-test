@@ -1,0 +1,14 @@
+# Top-level Hydra config. Compose finer configs through `defaults:`.
+defaults:
+  - llm: yandex
+  - graph: synthetic
+  - agents: minimal_15
+  - controller: gnn
+  - _self_
+
+run:
+  seed: 42
+  output_dir: results
+  log_level: INFO
+
+phase: 0-bootstrap

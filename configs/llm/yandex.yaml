@@ -1,0 +1,68 @@
+# Yandex AI Studio LLM client configuration.
+#
+# `folder_id` and `api_key` are read from env vars at runtime; this file only
+# stores the shape of the config and the agent → tier mapping.
+
+provider: yandex
+
+models:
+  lite:
+    uri: gpt://${oc.env:YANDEX_FOLDER_ID,${oc.env:folder_id,unset}}/yandexgpt-lite/latest
+    max_tokens: 2000
+    temperature_default: 0.3
+  pro:
+    uri: gpt://${oc.env:YANDEX_FOLDER_ID,${oc.env:folder_id,unset}}/yandexgpt/latest
+    max_tokens: 4000
+    temperature_default: 0.1
+
+embeddings:
+  doc_uri: emb://${oc.env:YANDEX_FOLDER_ID,${oc.env:folder_id,unset}}/text-search-doc/latest
+  query_uri: emb://${oc.env:YANDEX_FOLDER_ID,${oc.env:folder_id,unset}}/text-search-query/latest
+
+cache:
+  enabled: true
+  path: data/cache/llm.sqlite
+
+budget:
+  dev_budget_rub: 200
+  train_budget_rub: 900
+  eval_budget_rub: 900
+  hard_cap_rub: 2000
+  soft_cap_fraction: 0.8
+
+retry:
+  max_attempts: 5
+  initial_backoff_s: 1.0
+  max_backoff_s: 30.0
+  jitter: true
+
+concurrency:
+  max_in_flight: 4
+
+agent_to_model:
+  # fast / mechanical roles → lite
+  Coder: lite
+  Refiner: lite
+  Retriever: lite
+  MemoryReader: lite
+  MemoryWriter: lite
+  ToolExecutor: lite
+  SearchAgent: lite
+  TaskDecomposer: lite
+  Researcher: lite
+  Finalizer: lite
+  Debugger: lite
+  TestRunner: lite
+  ContextCompressor: lite
+  CitationChecker: lite
+  SchemaValidator: lite
+  ConstraintChecker: lite
+  FailureRecovery: lite
+  BudgetController: lite
+  MathSolver: lite
+
+  # reasoning / judgment → pro
+  Planner: pro
+  Critic: pro
+  Judge: pro
+  Verifier: pro

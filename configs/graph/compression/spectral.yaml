@@ -1,0 +1,3 @@
+method: spectral
+target_K: 64
+laplacian: normalized
